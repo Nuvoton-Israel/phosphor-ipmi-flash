@@ -40,9 +40,7 @@ bool P2aDataHandler::sendContents(const std::string& input,
 #ifdef NUVOTON_P2A_VGA
     filter.vid = nuvotonVGAVendorId;
     filter.did = nuvotonVGADeviceId;
-#endif
-
-#ifdef NUVOTON_P2A_MBOX
+#else
     filter.vid = nuvotonMBOXVendorId;
     filter.did = nuvotonMBOXDeviceId;
 #endif
@@ -124,9 +122,7 @@ bool P2aDataHandler::sendContents(const std::string& input,
 
 #ifdef NUVOTON_P2A_VGA
         std::uint32_t P2aOffset = 0x400000;
-#endif
-
-#ifdef NUVOTON_P2A_MBOX
+#else
         std::uint32_t P2aOffset = 0;
 #endif
 
