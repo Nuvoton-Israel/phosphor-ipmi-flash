@@ -106,7 +106,11 @@ bool P2aDataHandler::sendContents(const std::string& input,
 
     progress->start(fileSize);
 
+#ifdef NUVOTON_P2A_VGA
+    std::uint32_t p2aLength = 0x400000;
+#else
     std::uint32_t p2aLength = 0x4000;
+#endif
 
     auto readBuffer = std::make_unique<std::uint8_t[]>(p2aLength);
     if (nullptr == readBuffer)
@@ -129,7 +133,6 @@ bool P2aDataHandler::sendContents(const std::string& input,
         do
         {
             bytesRead = sys->read(inputFd, readBuffer.get(), p2aLength);
-            std::fprintf(stderr, "bytesRead:%d\n",bytesRead);
             if (bytesRead > 0)
             {
                 /* TODO: Will likely need to store an rv somewhere to know when
