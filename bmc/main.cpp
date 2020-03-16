@@ -25,6 +25,7 @@
 #include "lpc_aspeed.hpp"
 #include "lpc_handler.hpp"
 #include "lpc_nuvoton.hpp"
+#include "net_handler.hpp"
 #include "pci_handler.hpp"
 #include "status.hpp"
 #include "util.hpp"
@@ -68,11 +69,11 @@ LpcDataHandler lpcDataHandler(
 #endif
 
 #ifdef ENABLE_PCI_BRIDGE
-#if defined(ASPEED_P2A)
-PciDataHandler pciDataHandler(MAPPED_ADDRESS, memoryRegionSize);
-#else
 PciDataHandler pciDataHandler(MAPPED_ADDRESS, memoryRegionSize);
 #endif
+
+#ifdef ENABLE_NET_BRIDGE
+NetDataHandler netDataHandler;
 #endif
 
 std::vector<DataHandlerPack> supportedTransports = {
@@ -82,6 +83,9 @@ std::vector<DataHandlerPack> supportedTransports = {
 #endif
 #ifdef ENABLE_LPC_BRIDGE
     {FirmwareFlags::UpdateFlags::lpc, &lpcDataHandler},
+#endif
+#ifdef ENABLE_NET_BRIDGE
+    {FirmwareFlags::UpdateFlags::net, &netDataHandler},
 #endif
 };
 

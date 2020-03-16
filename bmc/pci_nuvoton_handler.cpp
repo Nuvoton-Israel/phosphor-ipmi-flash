@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-#include "pci_handler.hpp"
-
 #include "data.hpp"
+#include "pci_handler.hpp"
 
 #include <fcntl.h>
 

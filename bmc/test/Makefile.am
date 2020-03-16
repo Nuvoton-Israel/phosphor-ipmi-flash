@@ -22,12 +22,12 @@ AM_LDFLAGS = \
 
 # Run all 'check' test programs
 check_PROGRAMS = \
-	firmware_createhandler_unittest \
 	firmware_handler_unittest \
 	firmware_stat_unittest \
 	firmware_canhandle_unittest \
 	firmware_write_unittest \
 	firmware_writemeta_unittest \
+	firmware_open_unittest \
 	firmware_close_unittest \
 	firmware_sessionstat_unittest \
 	firmware_commit_unittest \
@@ -46,9 +46,6 @@ check_PROGRAMS = \
 
 TESTS = $(check_PROGRAMS)
 
-firmware_createhandler_unittest_SOURCES = firmware_createhandler_unittest.cpp
-firmware_createhandler_unittest_LDADD = $(top_builddir)/bmc/libfirmwareblob_common.la
-
 firmware_handler_unittest_SOURCES = firmware_handler_unittest.cpp
 firmware_handler_unittest_LDADD = $(top_builddir)/bmc/libfirmwareblob_common.la
 
@@ -63,6 +60,9 @@ firmware_write_unittest_LDADD = $(top_builddir)/bmc/libfirmwareblob_common.la
 
 firmware_writemeta_unittest_SOURCES = firmware_writemeta_unittest.cpp
 firmware_writemeta_unittest_LDADD = $(top_builddir)/bmc/libfirmwareblob_common.la
+
+firmware_open_unittest_SOURCES = firmware_open_unittest.cpp
+firmware_open_unittest_LDADD = $(top_builddir)/bmc/libfirmwareblob_common.la
 
 firmware_close_unittest_SOURCES = firmware_close_unittest.cpp
 firmware_close_unittest_LDADD = $(top_builddir)/bmc/libfirmwareblob_common.la

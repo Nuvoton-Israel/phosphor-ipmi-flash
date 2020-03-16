@@ -156,6 +156,15 @@ AS_IF([test "x$enable_reboot_update" = "xyes"], [
     AX_APPEND_COMPILE_FLAGS([-DENABLE_REBOOT_UPDATE], [CXXFLAGS])
 ])
 
+# Enable the update with status file
+AC_ARG_ENABLE([update-status],
+    AS_HELP_STRING([--enable-update-status],
+                   [Enable use of update status file.]))
+AM_CONDITIONAL([ENABLE_UPDATE_STATUS], [test "x$enable_update_status" = "xyes"])
+AS_IF([test "x$enable_update_status" = "xyes"], [
+    AX_APPEND_COMPILE_FLAGS([-DENABLE_UPDATE_STATUS], [CXXFLAGS])
+])
+
 # Enable the cleanup handle that deletes the temporary files. (default: no)
 AC_ARG_ENABLE([cleanup-delete],
     AS_HELP_STRING([--enable-cleanup-delete],
@@ -280,6 +289,14 @@ AS_IF([test "x$enable_aspeed_p2a" = "xyes"], [
     ])
 ])
 
+AS_IF([test "x$enable_aspeed_p2a" = "xyes"], [
+    AS_IF([test "x$enable_nuvoton_p2a_vga" = "xyes" -o "x$enable_nuvoton_p2a_mbox" = "xyes"], [
+        AS_IF([test "x$enable_tests" != "xyes"], [
+            AC_MSG_ERROR([Invalid configuration enabling both ASPEED and Nuvoton.])
+        ])
+    ])
+])
+
 AS_IF([test "x$enable_nuvoton_lpc" = "xyes"], [
     AS_IF([test "x$enable_nuvoton_p2a_vga" = "xyes" -o "x$enable_nuvoton_p2a_mbox" = "xyes"], [
         AS_IF([test "x$enable_tests" != "xyes"], [
@@ -294,6 +311,14 @@ AS_IF([test "x$enable_nuvoton_p2a_vga" = "xyes"], [
             AC_MSG_ERROR([Invalid configuration enabling both PCI-VGA and PCI-MBOX of Nuvoton.])
         ])
     ])
+])
+
+AC_ARG_ENABLE([net-bridge],
+    AS_HELP_STRING([--enable-net-bridge],
+                   [Enable external transfers using a TCP connection]))
+AM_CONDITIONAL(ENABLE_NET_BRIDGE, [test "x$enable_net_bridge" = "xyes"])
+AS_IF([test "x$enable_net_bridge" = "xyes"], [
+    AX_APPEND_COMPILE_FLAGS([-DENABLE_NET_BRIDGE], [CXXFLAGS])
 ])
 
 AC_ARG_VAR(
@@ -420,6 +445,20 @@ AC_DEFINE_UNQUOTED(
     [UPDATE_DBUS_SERVICE],
     ["$UPDATE_DBUS_SERVICE"],
     [The systemd target started for updating the BMC.]
+)
+
+AC_ARG_VAR(
+    UPDATE_STATUS_FILENAME,
+    [The file checked for the update status.]
+)
+AS_IF(
+    [test "x$UPDATE_STATUS_FILENAME" == "x"],
+    [UPDATE_STATUS_FILENAME="/tmp/bmc.update"]
+)
+AC_DEFINE_UNQUOTED(
+    [UPDATE_STATUS_FILENAME],
+    ["$UPDATE_STATUS_FILENAME"],
+    [The file checked for the update status.]
 )
 
 AC_ARG_VAR(
@@ -602,5 +641,6 @@ AC_CONFIG_FILES([bmc/phosphor-ipmi-flash-bios-verify.target])
 AC_CONFIG_FILES([bmc/phosphor-ipmi-flash-bios-update.target])
 AC_CONFIG_FILES([bmc/config-static-bmc-reboot.json])
 AC_CONFIG_FILES([bmc/config-static-bmc.json])
+AC_CONFIG_FILES([bmc/config-static-bmc-with-update-status.json])
 AC_CONFIG_FILES([bmc/config-bios.json])
 AC_OUTPUT

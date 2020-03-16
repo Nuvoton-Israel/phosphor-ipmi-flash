@@ -36,7 +36,7 @@ namespace host_tool
 
 void updaterMain(UpdateHandlerInterface* updater, const std::string& imagePath,
                  const std::string& signaturePath,
-                 const std::string& layoutType)
+                 const std::string& layoutType, bool ignoreUpdate)
 {
     /* TODO: validate the layoutType isn't a special value such as: 'update',
      * 'verify', or 'hash'
@@ -46,10 +46,10 @@ void updaterMain(UpdateHandlerInterface* updater, const std::string& imagePath,
     bool goalSupported = updater->checkAvailable(layout);
     if (!goalSupported)
     {
-        throw ToolException("Goal firmware or interface not supported");
+        throw ToolException("Goal firmware not supported");
     }
 
-    /* Yay, our data handler is supported. */
+    /* Yay, our layout type is supported. */
     try
     {
         /* Send over the firmware image. */
@@ -63,7 +63,7 @@ void updaterMain(UpdateHandlerInterface* updater, const std::string& imagePath,
         /* Trigger the verification by opening and committing the verify file.
          */
         std::fprintf(stderr, "Opening the verification file\n");
-        if (updater->verifyFile(ipmi_flash::verifyBlobId))
+        if (updater->verifyFile(ipmi_flash::verifyBlobId, false))
         {
             std::fprintf(stderr, "succeeded\n");
         }
@@ -75,7 +75,7 @@ void updaterMain(UpdateHandlerInterface* updater, const std::string& imagePath,
 
         /* Trigger the update by opening and committing the update file. */
         std::fprintf(stderr, "Opening the update file\n");
-        if (updater->verifyFile(ipmi_flash::updateBlobId))
+        if (updater->verifyFile(ipmi_flash::updateBlobId, ignoreUpdate))
         {
             std::fprintf(stderr, "succeeded\n");
         }

@@ -13,7 +13,11 @@ if ENABLE_STATIC_LAYOUT
 if ENABLE_REBOOT_UPDATE
 dist_pkgdata_DATA += config-static-bmc-reboot.json
 else
+if ENABLE_UPDATE_STATUS
+dist_pkgdata_DATA += config-static-bmc-with-update-status.json
+else
 dist_pkgdata_DATA += config-static-bmc.json
+endif
 endif
 endif
 
@@ -55,6 +59,18 @@ if ENABLE_ASPEED_P2A
 libfirmwareblob_common_la_SOURCES += pci_aspeed_handler.cpp
 else
 libfirmwareblob_common_la_SOURCES += pci_nuvoton_handler.cpp
+endif
+
+if ENABLE_NUVOTON_P2A_VGA
+libfirmwareblob_common_la_SOURCES += pci_nuvoton_handler.cpp
+endif
+
+if ENABLE_NUVOTON_P2A_MBOX
+libfirmwareblob_common_la_SOURCES += pci_nuvoton_handler.cpp
+endif
+
+if ENABLE_NET_BRIDGE
+libfirmwareblob_common_la_SOURCES += net_handler.cpp
 endif
 
 libfirmwareblob_common_la_CXXFLAGS = \

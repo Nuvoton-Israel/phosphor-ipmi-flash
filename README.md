@@ -38,6 +38,18 @@ make
 make install
 ```
 
+#### Building stdplus
+
+Check out the [stdplus source](https://github.com/openbmc/stdplus).
+
+Then run these commands in the source directory.
+
+```
+meson setup -Dexamples=false -Dtests=disabled builddir
+ninja -C builddir
+ninja -C builddir install
+```
+
 #### Building burn_my_bmc (the host-tool)
 
 Check out the [phosphor-ipmi-flash source](https://github.com/openbmc/phosphor-ipmi-flash).
@@ -66,7 +78,7 @@ The required parameters are:
  Parameter  | Options  | Meaning
 ----------- | -------- | -------
 `command`   | `update` | The tool should try to update the BMC firmware.
-`interface` | `ipmibt`, `ipmilpc`, `ipmipci` | The data transport mechanism, typically `ipmilpc`
+`interface` | `ipmibt`, `ipmilpc`, `ipmipci`, `ipminet` | The data transport mechanism, typically `ipmilpc`
 `image`     | path     | The BMC firmware image file (or tarball)
 `sig`       | path     | The path to a signature file to send to the BMC along with the image file.
 `type`      | blob ending | The ending of the blob id.  For instance `/flash/image` becomes a type of `image`.
@@ -75,12 +87,18 @@ If you're using an LPC data transfer mechanism, you'll need two additional
 parameters: `address` and `length`.  These values indicate where on the host
 you've reserved memory to be used for the transfer window.
 
+If you're using a net data transfer mechanism, you'll also need two additional
+parameters: `hostname` and `port`. These specify which address and port the tool
+should attempt to connect to the BMC using. If unspecified, the `port` option
+defaults to 623, the same port as IPMI LAN+.
+
 ## Introduction
 
-This supports two methods of providing the image to stage. You can send the
+This supports three methods of providing the image to stage. You can send the
 file over IPMI packets, which is a very slow process. A 32-MiB image can take
-~3 hours to send via this method.  This can be done in <1 minutes via the PCI
-bridge, or just a few minutes via LPC depending on the size of the mapped area.
+~3 hours to send via this method.  This can be done in <1 minutes via the PCI or
+net bridge, or just a few minutes via LPC depending on the size of the mapped
+area.
 
 This is implemented as a phosphor blob handler.
 
@@ -130,13 +148,15 @@ Option                   | Meaning
 The following are configuration options for how the host and BMC are meant to
 transfer the data.  By default, the data-in-IPMI mechanism is enabled.
 
-There are two configurable data transport mechanisms, either staging the bytes
-via the LPC memory region, or the PCI-to-AHB memory region.  Because there is
-only one `MAPPED_ADDRESS` variable at present, a platform should only configure
-one.  The platform's device-tree may have the region locked to a specific
-driver (lpc-aspeed-ctrl), preventing the region from other use.
+There are three configurable data transport mechanisms, either staging the bytes
+via the LPC memory region, the PCI-to-AHB memory region, or sending over a
+network connection.  Because there is only one `MAPPED_ADDRESS` variable at
+present, a platform should not configure LPC and P2A at the same time.  The
+platform's device-tree may have the region locked to a specific driver
+(lpc-aspeed-ctrl), preventing the region from other use.
 
-***NOTE:*** It will likely be possible to configure both in the near future.
+***NOTE:*** It will likely be possible to configure both LPC and P2A in the near
+future.
 
 Variable              | Default | Meaning
 --------------------- | ------- | -------
@@ -159,6 +179,15 @@ Option                 | Meaning
 `--enable-aspeed-lpc`  | Use with ASPEED parts.
 `--enable-nuvoton-lpc` | Use with Nuvoton parts.
 
+A platform may also enable the network transport mechanism.
+
+NOTE: This mechanism is only intended to be used in-band and not exposed
+externally, as it doesn't implement any encryption or integrity verification.
+
+Option                | Meaning
+----------------------| -------
+`--enable-net-bridge` | Enable net transport bridge
+
 There are also options to control an optional clean up mechanism.
 
 Option                    | Meaning
@@ -171,6 +200,14 @@ enable that directly.
 Option                   | Meaning
 ------------------------ | -------
 `--enable-reboot-update` | Enable use of reboot update mechanism.
+
+If you would like the update status to be tracked with a status file, this
+option can be enabled. Note that `--enable-update-status` option and the above
+`--enable-reboot-update` option cannot be enabled at the same time.
+
+Option                   | Meaning
+------------------------ | -------
+`--enable-update-status` | Enable use of update status file.
 
 ### Internal Configuration Details
 
@@ -186,6 +223,7 @@ Variable                      | Default                    | Meaning
 `VERIFY_STATUS_FILENAME`      | `/tmp/bmc.verify`          | The file checked for the verification status.
 `VERIFY_DBUS_SERVICE`         | `phosphor-ipmi-flash-bmc-verify.target`  | The systemd target started for verification.
 `UPDATE_DBUS_SERVICE`         | `phosphor-ipmi-flash-bmc-update.target`  | The systemd target started for updating the BMC.
+`UPDATE_STATUS_FILENAME`      | `/tmp/bmc.update`  | The file checked for the update status.
 `BIOS_STAGED_NAME`            | `/tmp/bios-image`  | The file to use for staging the bios firmware update.
 `BIOS_VERIFY_STATUS_FILENAME` | `/tmp/bios.verify` | The file checked for the verification status.
 `PREPARATION_BIOS_TARGET`     | `phosphor-ipmi-flash-bios-prepare.target` | The systemd target when the host starts to send an update.

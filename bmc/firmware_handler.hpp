@@ -117,19 +117,18 @@ class FirmwareBlobHandler : public blobs::GenericBlobInterface
      * @param[in] firmwares - list of firmware types and their handlers
      * @param[in] blobs - list of blobs_ids to support
      * @param[in] transports - list of transport types and their handlers
-     * @param[in] bitmask - bitmask of transports to support
      * @param[in] verification - pointer to object for triggering verification
      * @param[in] update - point to object for triggering the update
      */
     FirmwareBlobHandler(std::vector<HandlerPack>&& firmwares,
                         const std::vector<std::string>& blobs,
                         const std::vector<DataHandlerPack>& transports,
-                        std::uint16_t bitmask, ActionMap&& actionPacks) :
+                        ActionMap&& actionPacks) :
         handlers(std::move(firmwares)),
-        blobIDs(blobs), transports(transports), bitmask(bitmask),
-        activeImage(activeImageBlobId), activeHash(activeHashBlobId),
-        verifyImage(verifyBlobId), updateImage(updateBlobId), lookup(),
-        state(UpdateState::notYetStarted), actionPacks(std::move(actionPacks))
+        blobIDs(blobs), transports(transports), activeImage(activeImageBlobId),
+        activeHash(activeHashBlobId), verifyImage(verifyBlobId),
+        updateImage(updateBlobId), lookup(), state(UpdateState::notYetStarted),
+        actionPacks(std::move(actionPacks))
     {
     }
     ~FirmwareBlobHandler() = default;
@@ -210,6 +209,11 @@ class FirmwareBlobHandler : public blobs::GenericBlobInterface
                       blobIDs.end());
     }
 
+    inline bool fileOpen()
+    {
+        return !lookup.empty();
+    }
+
     ActionStatus getVerifyStatus();
     ActionStatus getActionStatus();
 
@@ -221,9 +225,6 @@ class FirmwareBlobHandler : public blobs::GenericBlobInterface
 
     /** List of handlers by transport type. */
     std::vector<DataHandlerPack> transports;
-
-    /** The bits set indicate what transport mechanisms are supported. */
-    std::uint16_t bitmask;
 
     /** Active image session. */
     Session activeImage;
@@ -252,12 +253,14 @@ class FirmwareBlobHandler : public blobs::GenericBlobInterface
     bool preparationTriggered = false;
     ActionMap actionPacks;
 
-    /** Temporary variable to track whether a blob is open. */
-    bool fileOpen = false;
-
     ActionStatus lastVerificationStatus = ActionStatus::unknown;
 
     ActionStatus lastUpdateStatus = ActionStatus::unknown;
+
+    /** Portion of "flags" argument to open() which specifies the desired
+     *  transport type
+     */
+    static constexpr std::uint16_t transportMask = 0xff00;
 };
 
 } // namespace ipmi_flash

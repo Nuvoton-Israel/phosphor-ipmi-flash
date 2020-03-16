@@ -51,28 +51,6 @@ bool UpdateHandler::checkAvailable(const std::string& goalFirmware)
         return false;
     }
 
-    /* Call stat on /flash/image (or /flash/tarball) and check if data interface
-     * is supported.
-     */
-    ipmiblob::StatResponse stat;
-
-    try
-    {
-        stat = blob->getStat(goalFirmware);
-    }
-    catch (const ipmiblob::BlobException& b)
-    {
-        std::fprintf(stderr, "Received exception '%s' on getStat\n", b.what());
-        return false;
-    }
-
-    auto supported = handler->supportedType();
-    if ((stat.blob_state & supported) == 0)
-    {
-        std::fprintf(stderr, "data interface selected not supported.\n");
-        return false;
-    }
-
     return true;
 }
 
@@ -106,7 +84,7 @@ void UpdateHandler::sendFile(const std::string& target, const std::string& path)
     blob->closeBlob(session);
 }
 
-bool UpdateHandler::verifyFile(const std::string& target)
+bool UpdateHandler::verifyFile(const std::string& target, bool ignoreStatus)
 {
     std::uint16_t session;
     bool success = false;
@@ -135,6 +113,13 @@ bool UpdateHandler::verifyFile(const std::string& target)
         blob->closeBlob(session);
         throw ToolException("blob exception received: " +
                             std::string(b.what()));
+    }
+
+    if (ignoreStatus)
+    {
+        // Skip checking the blob for status if ignoreStatus is enabled
+        blob->closeBlob(session);
+        return true;
     }
 
     std::fprintf(stderr, "Calling stat on %s session to check status\n",
