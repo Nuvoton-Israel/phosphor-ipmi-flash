@@ -57,8 +57,6 @@ endif
 
 if ENABLE_ASPEED_P2A
 libfirmwareblob_common_la_SOURCES += pci_aspeed_handler.cpp
-else
-libfirmwareblob_common_la_SOURCES += pci_nuvoton_handler.cpp
 endif
 
 if ENABLE_NUVOTON_P2A_VGA
